@@ -1,0 +1,29 @@
+# git-clone-task.yaml
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: git-clone
+  namespace: cicd
+spec:
+  params:
+    - name: url
+    - name: revision
+  workspaces:
+    - name: shared-workspace
+  steps:
+    - name: clear-workspace
+      image: alpine
+      script: |
+        #!/bin/sh
+        echo "== Clearing workspace before clone =="
+        rm -rf $(workspaces.shared-workspace.path)/*
+        rm -rf $(workspaces.shared-workspace.path)/.[!.]*
+    - name: clone
+      image: alpine/git
+      script: |
+        #!/bin/sh
+        set -ex
+        echo "== Cloning into path: $(workspaces.shared-workspace.path)"
+        git clone -b $(params.revision) $(params.url) $(workspaces.shared-workspace.path)
+        echo "== Clone completed =="
+        ls -la $(workspaces.shared-workspace.path)

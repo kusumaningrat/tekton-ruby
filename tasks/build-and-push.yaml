@@ -1,0 +1,24 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: build-and-push
+  namespace: cicd
+spec:
+  params:
+    - name: image-url
+  workspaces:
+    - name: shared-workspace
+  steps:
+    - name: build-and-push
+      image: gcr.io/kaniko-project/executor:latest
+      volumeMounts:
+        - name: docker-config
+          mountPath: /kaniko/.docker
+      args:
+        - "--context=$(workspaces.shared-workspace.path)"
+        - "--dockerfile=Dockerfile"
+        - "--destination=$(params.image-url)"
+  volumes:
+    - name: docker-config
+      secret:
+        secretName: docker-credentials

@@ -1,0 +1,43 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: ci-cd-pipeline
+  namespace: cicd
+spec:
+  params:
+    - name: git-url
+    - name: git-revision
+    - name: base-image-url  
+  workspaces:
+    - name: shared-workspace
+  tasks:
+    - name: clone
+      taskRef:
+        name: git-clone
+      params:
+        - name: url
+          value: $(params.git-url)
+        - name: revision
+          value: $(params.git-revision)
+      workspaces:
+        - name: shared-workspace
+          workspace: shared-workspace
+
+    - name: generate-tag
+      runAfter: [clone]
+      taskRef:
+        name: generate-tag
+      workspaces:
+        - name: shared-workspace
+          workspace: shared-workspace
+
+    - name: build
+      runAfter: [clone, generate-tag]
+      taskRef:
+        name: build-and-push
+      params:
+        - name: image-url
+          value: docker.io/kusumaningrat16/ruby-backend-markeble:$(tasks.generate-tag.results.tag)
+      workspaces:
+        - name: shared-workspace
+          workspace: shared-workspace
