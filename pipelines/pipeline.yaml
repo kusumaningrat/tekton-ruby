@@ -23,21 +23,13 @@ spec:
         - name: shared-workspace
           workspace: shared-workspace
 
-    - name: generate-tag
-      runAfter: [clone]
-      taskRef:
-        name: generate-tag
-      workspaces:
-        - name: shared-workspace
-          workspace: shared-workspace
-
     - name: build
       runAfter: [clone, generate-tag]
       taskRef:
         name: build-and-push
       params:
         - name: image-url
-          value: docker.io/kusumaningrat16/ruby-backend-markeble:$(tasks.generate-tag.results.tag)
+          value: docker.io/kusumaningrat16/ruby-backend-markeble:latest
       workspaces:
         - name: shared-workspace
           workspace: shared-workspace
