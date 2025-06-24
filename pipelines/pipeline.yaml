@@ -6,8 +6,7 @@ metadata:
 spec:
   params:
     - name: git-url
-    - name: git-revision
-    - name: base-image-url  
+    - name: git-revision  
   workspaces:
     - name: shared-workspace
   tasks:
@@ -24,7 +23,7 @@ spec:
           workspace: shared-workspace
 
     - name: build
-      runAfter: [clone, generate-tag]
+      runAfter: [clone]
       taskRef:
         name: build-and-push
       params:
