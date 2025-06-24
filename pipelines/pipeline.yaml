@@ -6,7 +6,8 @@ metadata:
 spec:
   params:
     - name: git-url
-    - name: git-revision  
+    - name: git-revision
+    - name: base-image-url  
   workspaces:
     - name: shared-workspace
   tasks:
