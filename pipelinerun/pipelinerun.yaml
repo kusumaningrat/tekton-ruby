@@ -9,12 +9,21 @@ spec:
     name: ci-cd-pipeline
   params:
     - name: git-url
-      value: https://github.com/kusumaningrat/DevOps-Coding-Assessment.git
+      value: git@github.com:kusumaningrat/DevOps-Coding-Assessment.git
     - name: git-revision
       value: main
-    - name: base-image-url
-      value: docker.io/kusumaningrat16/ruby-backend-markeble:latest
+    - name: image-name
+      value: docker.io/kusumaningrat16/ruby-backend-markeble
+    - name: git-user-name
+      value: kusumaningrat
+    - name: git-user-email
+      value: kusumanetcom@gmail.com
+    - name: deployment-file
+      value: git/deployment/app.yaml
   workspaces:
     - name: shared-workspace
       persistentVolumeClaim:
         claimName: tekton-shared-storage-pvc
+    - name: ssh-creds
+      secret:
+        secretName: github-ssh-key

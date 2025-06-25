@@ -5,7 +5,8 @@ metadata:
   namespace: cicd
 spec:
   params:
-    - name: image-url
+    - name: image-name
+    - name: image-tag
   workspaces:
     - name: shared-workspace
   steps:
@@ -15,9 +16,9 @@ spec:
         - name: docker-config
           mountPath: /kaniko/.docker
       args:
-        - "--context=$(workspaces.shared-workspace.path)"
+        - "--context=$(workspaces.shared-workspace.path)/git"
         - "--dockerfile=Dockerfile"
-        - "--destination=$(params.image-url)"
+        - "--destination=$(params.image-name):$(params.image-tag)"
   volumes:
     - name: docker-config
       secret:

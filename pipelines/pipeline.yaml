@@ -7,9 +7,13 @@ spec:
   params:
     - name: git-url
     - name: git-revision
-    - name: base-image-url  
+    - name: image-name
+    - name: git-user-name
+    - name: git-user-email
+    - name: deployment-file
   workspaces:
     - name: shared-workspace
+    - name: ssh-creds
   tasks:
     - name: clone
       taskRef:
@@ -22,14 +26,47 @@ spec:
       workspaces:
         - name: shared-workspace
           workspace: shared-workspace
+        - name: ssh-creds
+          workspace: ssh-creds
+
+    - name: generate-tag
+      taskRef:
+        name: generate-tag
+      runAfter: [clone]
+      workspaces:
+        - name: shared-workspace
+          workspace: shared-workspace
 
     - name: build
       runAfter: [clone]
       taskRef:
         name: build-and-push
       params:
-        - name: image-url
-          value: docker.io/kusumaningrat16/ruby-backend-markeble:latest
+        - name: image-name
+          value: $(params.image-name)
+        - name: image-tag
+          value: $(tasks.generate-tag.results.image-tag)
       workspaces:
         - name: shared-workspace
           workspace: shared-workspace
+
+    - name: update-deploy
+      taskRef:
+        name: update-image-tag
+      runAfter: [build]
+      params:
+        - name: git-user-name
+          value: $(params.git-user-name)
+        - name: git-user-email
+          value: $(params.git-user-email)
+        - name: git-url
+          value: $(params.git-url)
+        - name: image-name
+          value: $(params.image-name)
+        - name: deployment-file
+          value: $(params.deployment-file)
+      workspaces:
+        - name: shared-workspace
+          workspace: shared-workspace
+        - name: ssh-creds
+          workspace: ssh-creds

@@ -1,4 +1,3 @@
-# git-clone-task.yaml
 apiVersion: tekton.dev/v1
 kind: Task
 metadata:
@@ -10,20 +9,35 @@ spec:
     - name: revision
   workspaces:
     - name: shared-workspace
+    - name: ssh-creds
   steps:
     - name: clear-workspace
       image: alpine
       script: |
         #!/bin/sh
-        echo "== Clearing workspace before clone =="
-        rm -rf $(workspaces.shared-workspace.path)/*
-        rm -rf $(workspaces.shared-workspace.path)/.[!.]*
+        echo "== Clearing git folder before clone =="
+        rm -rf /workspace/shared-workspace/git || true
+        mkdir -p /workspace/shared-workspace/git
+
+    - name: setup-ssh
+      image: alpine/git
+      script: |
+        #!/bin/sh
+        mkdir -p /workspace/shared-workspace/.ssh
+        cp /workspace/ssh-creds/ssh-privatekey /workspace/shared-workspace/.ssh/id_rsa
+        chmod 600 /workspace/shared-workspace/.ssh/id_rsa
+
+        ssh-keyscan github.com >> /workspace/shared-workspace/.ssh/known_hosts
+        chmod 644 /workspace/shared-workspace/.ssh/known_hosts
+
+        echo "Host github.com" >> /workspace/shared-workspace/.ssh/config
+        echo "  StrictHostKeyChecking no" >> /workspace/shared-workspace/.ssh/config
+        chmod 600 /workspace/shared-workspace/.ssh/config
+
     - name: clone
       image: alpine/git
       script: |
         #!/bin/sh
         set -ex
-        echo "== Cloning into path: $(workspaces.shared-workspace.path)"
-        git clone -b $(params.revision) $(params.url) $(workspaces.shared-workspace.path)
-        echo "== Clone completed =="
-        ls -la $(workspaces.shared-workspace.path)
+        export GIT_SSH_COMMAND="ssh -i /workspace/shared-workspace/.ssh/id_rsa -o UserKnownHostsFile=/workspace/shared-workspace/.ssh/known_hosts -o StrictHostKeyChecking=no"
+        git clone -b $(params.revision) $(params.url) /workspace/shared-workspace/git

@@ -4,4 +4,4 @@ metadata:
   name: docker-credentials
   namespace: cicd
 data:
-  config.json: ewoJImF1dGhzIjogewoJCSJnaGNyLmlvIjogewoJCQkiYXV0aCI6ICJhM1Z6ZFcxaGJtbHVaM0poZERwbmFIQmZUMUJxZG5relZYTnlUVGRvUXpaUU9FOVFUVFZyZG1oQ1pXOVFSMGRrTkdSNWRsWTIiCgkJfSwKCQkiaHR0cHM6Ly9pbmRleC5kb2NrZXIuaW8vdjEvIjogewoJCQkiYXV0aCI6ICJhM1Z6ZFcxaGJtbHVaM0poZERFMk9tdDFjM1Z0WVc1cGJtZHlZWFE9IgoJCX0KCX0KfQ==
+  config.json: <generated_base64>

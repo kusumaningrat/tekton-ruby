@@ -1,0 +1,59 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: update-image-tag
+  namespace: cicd
+spec:
+  params:
+    - name: git-user-name
+    - name: git-user-email
+    - name: git-url
+    - name: image-name
+    - name: deployment-file
+  workspaces:
+    - name: shared-workspace
+    - name: ssh-creds
+  steps:
+    - name: update-tag
+      image: alpine
+      script: |
+        #!/bin/sh
+        cd $(workspaces.shared-workspace.path)
+        pwd
+        ls -l
+        ls -l git
+        TAG=$(cat tag.txt)
+        echo "Replacing image tag with: $TAG"
+        sed -i "s|$(params.image-name):.*|$(params.image-name):$TAG|" $(params.deployment-file)
+        echo "== Final deployment file =="
+        cat $(params.deployment-file)
+
+    - name: commit-and-push
+      image: alpine/git
+      script: |
+        #!/bin/sh
+        # Setup ssh for git push
+        mkdir -p /root/.ssh
+        cp /workspace/ssh-creds/ssh-privatekey /root/.ssh/id_rsa
+        chmod 600 /root/.ssh/id_rsa
+        ssh-keyscan github.com >> /root/.ssh/known_hosts
+
+        eval $(ssh-agent)
+        ssh-add /root/.ssh/id_rsa
+
+        export GIT_SSH_COMMAND="ssh -i /root/.ssh/id_rsa -o StrictHostKeyChecking=no"
+
+        cd $(workspaces.shared-workspace.path)/git
+        ls -l $(workspaces.shared-workspace.path)/git
+
+        git config user.email "$(params.git-user-email)"
+        git config user.name "$(params.git-user-name)"
+        git config --global --add safe.directory $(workspaces.shared-workspace.path)/git
+
+        git add deployment/app.yaml
+        cat deployment/app.yaml
+
+        TAG=$(cat $(workspaces.shared-workspace.path)/tag.txt)
+        git commit -m "Update image tag to $TAG"
+
+        git push origin HEAD

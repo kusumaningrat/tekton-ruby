@@ -1,0 +1,19 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: generate-tag
+  namespace: cicd
+spec:
+  workspaces:
+    - name: shared-workspace
+  results:
+  - name: image-tag
+    description: Generated image tag
+  steps:
+    - name: generate
+      image: alpine
+      script: |
+        #!/bin/sh
+        TAG=$(date +%Y%m%d%H%M%S)
+        echo $TAG > $(workspaces.shared-workspace.path)/tag.txt
+        echo -n $TAG > $(results.image-tag.path)
